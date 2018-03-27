@@ -11,6 +11,8 @@ var cors = require('cors');
 
 
 //var config = require('./config');
+var sportsInterface = require('./betfair/sports.js');
+var sports = sportsInterface();
 
 var userSchema = require('./dbmodels/users');
 var UserModel = mongoose.model('usersinfo', userSchema, 'users');
@@ -131,6 +133,85 @@ app.post('/getUsersHistory', function(req, res)
 		LogError(error, "getAllUsers");
 	}
 });
+
+app.post('/getSportsList', function(req, res)
+{
+	try {
+	    console.log('Inside sports method');
+		sports.getSportsList('4', function(err, response) {
+			if (err) {
+			  // include better error handling here   
+			  
+			  return LogError(err, "getAuthToken");
+		  
+			}
+			// use response here
+			//console.log(response);
+		  
+			var sportsDetails = response;
+			res.json({ "success": true, "errormessage": "", data: sportsDetails });			
+		  
+		  });
+		  
+		
+	} catch (error) {
+		LogError(error, "getSportsList");
+	}
+});
+
+app.post('/getSportsListbySeriesID', function(req, res)
+{
+	try {
+		var seriesid = req.body.seriesId;
+	    console.log('Inside sports method');
+		sports.getSportsListbySeriesID(seriesid, function(err, response) {
+			if (err) {
+			  // include better error handling here   
+			  
+			  return LogError(err, "getSportsListbySeriesID");
+		  
+			}
+			// use response here
+			//console.log(response);
+		  
+			var sportsDetails = response;
+			res.json({ "success": true, "errormessage": "", data: sportsDetails });			
+		  
+		  });
+		  
+		
+	} catch (error) {
+		LogError(error, "getSportsListbySeriesID");
+	}
+});
+
+app.post('/getMatchListbyMatchID', function(req, res)
+{
+	try {
+		var matchid = req.body.MatchId;
+	    sports.getMatchListbyMatchID(matchid, function(err, response) {
+			if (err) {
+			  // include better error handling here   
+			  
+			  return LogError(err, "getMatchListbyMatchID");
+		  
+			}
+			// use response here
+			//console.log(response);
+		  
+			var matchDetails = response;
+			res.json({ "success": true, "errormessage": "", data: matchDetails });			
+		  
+		  });
+		  
+		
+	} catch (error) {
+		LogError(error, "getMatchListbyMatchID");
+	}
+});
+
+
+
 
 app.post('/UpdateDeposit', function(req, res)
 {
