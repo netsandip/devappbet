@@ -210,6 +210,33 @@ app.post('/getMatchListbyMatchID', function(req, res)
 	}
 });
 
+app.post('/getMatchOddsbyID', function(req, res)
+{
+	try {
+		var matchid = req.body.MatchId;
+		var marketid = req.body.MarketId;
+	    sports.getOddsbyMatchID(matchid, marketid, function(err, response) {
+			if (err) {
+			  // include better error handling here   
+			  
+			  return LogError(err, "getMatchListbyMatchID");
+		  
+			}
+			// use response here
+			//console.log(response);
+		  
+			var matchDetails = response;
+			res.json({ "success": true, "errormessage": "", data: matchDetails });			
+		  
+		  });
+		  
+		
+	} catch (error) {
+		LogError(error, "getMatchListbyMatchID");
+	}
+});
+
+
 
 
 
