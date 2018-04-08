@@ -19,6 +19,10 @@ var UserModel = mongoose.model('usersinfo', userSchema, 'users');
 
 var user_transSchema = require('./dbmodels/user_transaction');
 var UserhistoryModel = mongoose.model('users_historyinfo', user_transSchema, 'users_history');
+
+var betSaveInfo = require('./dbmodels/betsave');
+var betSaveInfoModel = mongoose.model('betplacementmaster', betSaveInfo, 'betplacementmaster');
+
 app.use(cors());
 /*app.use(favicon(__dirname + '/public/images/favicon.ico'));*/
 app.use(express.static(__dirname + '/public'));
@@ -223,7 +227,7 @@ app.post('/getMatchOddsbyID', function(req, res)
 		  
 			}
 			// use response here
-			//console.log(response);
+			// console.log(response.MarketRunner.runners[0]);
 		  
 			var matchDetails = response;
 			res.json({ "success": true, "errormessage": "", data: matchDetails });			
@@ -236,8 +240,66 @@ app.post('/getMatchOddsbyID', function(req, res)
 	}
 });
 
+app.post('/saveBetsInfo', function(req, res)
+{
+	try {
+		 var matchid = req.body.MatchId;
+		 var marketid = req.body.MarketId;
+		 // console.log(req.body);
+	    sports.getOddsbyMatchID(matchid, marketid, function(err, response) {
+			if (err) {
+			  // include better error handling here   
+			  
+			  return LogError(err, "getMatchListbyMatchID");
+		  
+			}
+			// use response here
+		  
+			var matchDetails = response;
+			// console.log(req.body);
+			var betdata = req.body;
+			console.log(betdata);
+			var betInfo = new betSaveInfoModel(betdata);
+
+			betInfo.save(function (err) {
+				if (err) {
+					LogError(err, "createUser");
+					res.status(400).send(err);
+				}
+				else { res.json({ "success": true, "errormessage": "" }); }
+			});	
+
+			//res.json({ "success": true, "errormessage": "", data: matchDetails });			
+		  
+		  });
+		  
+		
+	} catch (error) {
+		LogError(error, "getMatchListbyMatchID");
+	}
+});
 
 
+app.post('/getbetsPlacedHistory', function(req, res)
+{
+	try {
+		
+		betSaveInfoModel.find({}).sort({"Created_date": -1}).exec(function(err,obj) { 
+		console.log(obj); 
+		if (obj != undefined) {
+			res.json({ "success": true, "errormessage": "", data: obj });
+		}
+		else
+		{
+			res.json({ "success": false, "errormessage": "No user history found" });
+		}		
+	
+	});        
+	
+} catch (error) {
+	LogError(error, "getAllUsers");
+}
+});
 
 
 app.post('/UpdateDeposit', function(req, res)
