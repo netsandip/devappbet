@@ -301,10 +301,24 @@ app.post('/getbetsPlacedHistory', function(req, res)
 }
 });
 
+app.post('/checkBalancebyUserid', function(req, res)
+{
+	console.log(req.body);
+	UserModel.findOne({userid: req.body.userid}, function(err,obj) { 		
+		if (obj != undefined) {
+				res.json({ "success": true, "errormessage": "", "balance": obj.Balance });								
+		}
+		else
+		{
+			res.json({ "success": false, "errormessage": "userid doesnt exists in the system" });
+		}	
+	
+	});	
+});
 
 app.post('/UpdateDeposit', function(req, res)
 {
-	console.log(req.body);		
+	// console.log(req.body);		
 	UserModel.findOne({userid: req.body.userid}, function(err,obj) { 
 		//console.log(obj); 
 		if (obj != undefined) {
