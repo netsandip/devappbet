@@ -275,8 +275,10 @@ app.post('/saveBetsInfo', function(req, res)
 			var betdata = req.body;
 
 			if (sports1back >= betdata.odds || sports2back >= betdata.odds ) {
+				betdata.odds = sports1back === undefined ? sports1back : sports2back
 				betdata.Status = "Active"
 			} else if (sports1lay < betdata.odds || sports2lay < betdata.odds ) {
+				betdata.odds = sports1lay === undefined ? sports1lay : sports2lay
 				betdata.Status = "Active"
 			} else 
 			betdata.Status = "Pending"
