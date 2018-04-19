@@ -250,20 +250,44 @@ app.post('/saveBetsInfo', function(req, res)
 			if (err) {
 			  // include better error handling here   
 			  
-			  return LogError(err, "getMatchListbyMatchID");
+			  return LogError(err, "saveBetsInfo");
 		  
 			}
 			// use response here
+
+			let sports1back;
+			let sports2back;
+			let sports1lay;
+			let sports2lay;
+
 		  
-			var matchDetails = response;
+			let matchDetails = response;
+			//console.log(matchDetails.MarketRunner);
+			sports1back = response.MarketRunner.runners[0].ex.availableToBack[0].price;
+			sports2back = response.MarketRunner.runners[0].ex.availableToLay[0].price;
+			sports1lay = response.MarketRunner.runners[1].ex.availableToBack[0].price;
+			sports2lay = response.MarketRunner.runners[1].ex.availableToLay[0].price;
+			//console.log(sports1back + ' ' + sports1lay + ' ' + sports2back + ' ' + sports2lay);
+
+			
+
 			// console.log(req.body);
 			var betdata = req.body;
+
+			if (sports1back >= betdata.odds || sports2back >= betdata.odds ) {
+				betdata.Status = "Active"
+			} else if (sports1lay < betdata.odds || sports2lay < betdata.odds ) {
+				betdata.Status = "Active"
+			} else 
+			betdata.Status = "Pending"
+			
+
 			console.log(betdata);
 			var betInfo = new betSaveInfoModel(betdata);
 
 			betInfo.save(function (err) {
 				if (err) {
-					LogError(err, "createUser");
+					LogError(err, "saveBetsInfo");
 					res.status(400).send(err);
 				}
 				else { res.json({ "success": true, "errormessage": "" }); }
@@ -284,7 +308,28 @@ app.post('/getbetsPlacedHistory', function(req, res)
 {
 	try {
 		
-		betSaveInfoModel.find({}).sort({"Created_date": -1}).exec(function(err,obj) { 
+		betSaveInfoModel.find({Status: "Active"}).sort({"Created_date": -1}).exec(function(err,obj) { 
+		console.log(obj); 
+		if (obj != undefined) {
+			res.json({ "success": true, "errormessage": "", data: obj });
+		}
+		else
+		{
+			res.json({ "success": false, "errormessage": "No user history found" });
+		}		
+	
+	});        
+	
+} catch (error) {
+	LogError(error, "getAllUsers");
+}
+});
+
+app.post('/getbetsPlacedHistoryByUserid', function(req, res)
+{
+	try {
+		let userid = req.body.userid;
+		betSaveInfoModel.find({ 'userid': userid}).sort({"Created_date": -1}).exec(function(err,obj) { 
 		console.log(obj); 
 		if (obj != undefined) {
 			res.json({ "success": true, "errormessage": "", data: obj });
