@@ -406,7 +406,7 @@ app.post('/getbetsPlacedHistoryByUserid', function(req, res)
 {
 	try {
 		let userid = req.body.userid;
-		betSaveInfoModel.find({ 'userid': userid}).sort({"Created_date": -1}).exec(function(err,obj) { 
+		betSaveInfoModel.find({ userid: userid, back_match_match_lay: req.body.matchtype}).sort({"Created_date": -1}).exec(function(err,obj) { 
 		//console.log(obj); 
 		if (obj != undefined) {
 			res.json({ "success": true, "errormessage": "", data: obj });
