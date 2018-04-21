@@ -245,7 +245,7 @@ app.post('/saveBetsInfo', function(req, res)
 	try {
 		 var matchid = req.body.MatchId;
 		 var marketid = req.body.MarketId;
-		 // console.log(req.body);
+		 console.log(req.body);
 	    sports.getOddsbyMatchID(matchid, marketid, function(err, response) {
 			if (err) {
 			  // include better error handling here   
@@ -264,8 +264,8 @@ app.post('/saveBetsInfo', function(req, res)
 			let matchDetails = response;
 			//console.log(matchDetails.MarketRunner);
 			sports1back = response.MarketRunner.runners[0].ex.availableToBack[0].price;
-			sports2back = response.MarketRunner.runners[0].ex.availableToLay[0].price;
-			sports1lay = response.MarketRunner.runners[1].ex.availableToBack[0].price;
+			sports1lay = response.MarketRunner.runners[0].ex.availableToLay[0].price;
+			sports2back = response.MarketRunner.runners[1].ex.availableToBack[0].price;
 			sports2lay = response.MarketRunner.runners[1].ex.availableToLay[0].price;
 			//console.log(sports1back + ' ' + sports1lay + ' ' + sports2back + ' ' + sports2lay);
 
@@ -305,13 +305,88 @@ app.post('/saveBetsInfo', function(req, res)
 	}
 });
 
+app.post('/test', function(req, res){
+	try {
+		var matchid = req.body.MatchId;
+		var marketid = req.body.MarketId;
+		console.log(req.body);
+	   sports.getOddsbyMatchID(matchid, marketid, function(err, response) {
+		   if (err) {
+			 // include better error handling here   
+			 
+			 return LogError(err, "saveBetsInfo");
+		 
+		   }
+		   // use response here
+
+		   let sports1back;
+		   let sports2back;
+		   let sports1lay;
+		   let sports2lay;
+
+		 
+		   let matchDetails = response;
+		   //console.log(matchDetails.MarketRunner);
+		   sports1back = response.MarketRunner.runners[0].ex.availableToBack[0].price;
+		   sports1lay = response.MarketRunner.runners[0].ex.availableToLay[0].price;
+		   sports2back = response.MarketRunner.runners[1].ex.availableToBack[0].price;
+		   sports2lay = response.MarketRunner.runners[1].ex.availableToLay[0].price;
+		   
+		   var betdata = req.body;
+		   console.log((sports1back - 1) * betdata.stakeValue);
+		   if (sports1back >= betdata.odds || sports2back >= betdata.odds ) {
+			   
+			   if (betdata.sportsType === 'sports1') {
+				betdata.odds =  sports1back; 
+				betdata.liability_profit = (sports1back - 1) * betdata.stakeValue;   
+			   } else {
+				betdata.odds =  sports2back;
+				betdata.liability_profit = (sports2back - 1) * betdata.stakeValue;   
+			   }
+			   
+			   betdata.Status = "Active"
+		   } else if (sports1lay < betdata.odds || sports2lay < betdata.odds ) {
+			   //betdata.odds = sports1lay === undefined ? sports1lay : sports2lay
+			   if (betdata.sportsType === 'sports1') {
+				betdata.odds =  sports1lay; 
+				betdata.liability_profit = (sports1lay - 1) * betdata.stakeValue;   
+			   } else {
+				betdata.odds =  sports2lay;
+				betdata.liability_profit = (sports2lay - 1) * betdata.stakeValue;   
+			   }
+			   betdata.Status = "Active"
+		   } else 
+		   betdata.Status = "Pending"
+		   
+
+		   // console.log(betdata);
+		   var betInfo = new betSaveInfoModel(betdata);
+
+		   betInfo.save(function (err) {
+			   if (err) {
+				   LogError(err, "saveBetsInfo");
+				   res.status(400).send(err);
+			   }
+			   else { res.json({ "success": true, "errormessage": "" }); }
+		   });	
+
+		   //res.json({ "success": true, "errormessage": "", data: matchDetails });			
+		 
+		 });
+		 
+	   
+   } catch (error) {
+	   LogError(error, "getMatchListbyMatchID");
+   }
+});
+
 
 app.post('/getbetsPlacedHistory', function(req, res)
 {
 	try {
 		
 		betSaveInfoModel.find({Status: "Active"}).sort({"Created_date": -1}).exec(function(err,obj) { 
-		console.log(obj); 
+		//console.log(obj); 
 		if (obj != undefined) {
 			res.json({ "success": true, "errormessage": "", data: obj });
 		}
@@ -332,7 +407,7 @@ app.post('/getbetsPlacedHistoryByUserid', function(req, res)
 	try {
 		let userid = req.body.userid;
 		betSaveInfoModel.find({ 'userid': userid}).sort({"Created_date": -1}).exec(function(err,obj) { 
-		console.log(obj); 
+		//console.log(obj); 
 		if (obj != undefined) {
 			res.json({ "success": true, "errormessage": "", data: obj });
 		}
@@ -350,7 +425,7 @@ app.post('/getbetsPlacedHistoryByUserid', function(req, res)
 
 app.post('/checkBalancebyUserid', function(req, res)
 {
-	console.log(req.body);
+	//console.log(req.body);
 	UserModel.findOne({userid: req.body.userid}, function(err,obj) { 		
 		if (obj != undefined) {
 				res.json({ "success": true, "errormessage": "", "balance": obj.Balance });								
