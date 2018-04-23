@@ -333,8 +333,8 @@ app.post('/test', function(req, res){
 		   sports2lay = response.MarketRunner.runners[1].ex.availableToLay[0].price;
 		   
 		   var betdata = req.body;
-		   console.log((sports1back - 1) * betdata.stakeValue);
-		   if (sports1back >= betdata.odds || sports2back >= betdata.odds ) {
+		   
+		   if ((sports1back >= betdata.odds || sports2back >= betdata.odds) && betdata.back_match_match_lay == 'Back' ) {
 			   
 			   if (betdata.sportsType === 'sports1') {
 				betdata.odds =  sports1back; 
@@ -345,7 +345,7 @@ app.post('/test', function(req, res){
 			   }
 			   
 			   betdata.Status = "Active"
-		   } else if (sports1lay < betdata.odds || sports2lay < betdata.odds ) {
+		   } else if ((sports1lay < betdata.odds || sports2lay < betdata.odds) && betdata.back_match_match_lay == 'Lay' ) {
 			   //betdata.odds = sports1lay === undefined ? sports1lay : sports2lay
 			   if (betdata.sportsType === 'sports1') {
 				betdata.odds =  sports1lay; 
@@ -357,9 +357,7 @@ app.post('/test', function(req, res){
 			   betdata.Status = "Active"
 		   } else 
 		   betdata.Status = "Pending"
-		   
-
-		   // console.log(betdata);
+		   		   
 		   var betInfo = new betSaveInfoModel(betdata);
 
 		   betInfo.save(function (err) {

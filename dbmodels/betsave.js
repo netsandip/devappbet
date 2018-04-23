@@ -10,6 +10,7 @@ module.exports = mongoose.Schema({
     Status: String,
     MatchId: String,
     MarketId: String,
+    stakeValue: Number,
     Created_date : { type : Date, default: Date.now }
 });
 
