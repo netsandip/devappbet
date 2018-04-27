@@ -9,6 +9,6 @@ module.exports = mongoose.Schema({
     Password: String,
     Role:  { type : String, default: 'User' },
     Balance: Number,
-    UnConfirmed_Balance: Number,
+    UnConfirmed_Balance: { type : Number, default: 0 },
     Created_date : { type : Date, default: Date.now }
 });

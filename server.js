@@ -245,7 +245,7 @@ app.post('/saveBetsInfo', function(req, res)
 	try {
 		 var matchid = req.body.MatchId;
 		 var marketid = req.body.MarketId;
-		 console.log(req.body);
+		 //console.log(req.body);
 	    sports.getOddsbyMatchID(matchid, marketid, function(err, response) {
 			if (err) {
 			  // include better error handling here   
@@ -284,7 +284,7 @@ app.post('/saveBetsInfo', function(req, res)
 			betdata.Status = "Pending"
 			
 
-			console.log(betdata);
+			// console.log(betdata);
 			var betInfo = new betSaveInfoModel(betdata);
 
 			betInfo.save(function (err) {
@@ -309,7 +309,7 @@ app.post('/test', function(req, res){
 	try {
 		var matchid = req.body.MatchId;
 		var marketid = req.body.MarketId;
-		console.log(req.body);
+		//console.log(req.body);
 	   sports.getOddsbyMatchID(matchid, marketid, function(err, response) {
 		   if (err) {
 			 // include better error handling here   
@@ -365,7 +365,10 @@ app.post('/test', function(req, res){
 				   LogError(err, "saveBetsInfo");
 				   res.status(400).send(err);
 			   }
-			   else { res.json({ "success": true, "errormessage": "" }); }
+			   else { 
+				   res.json({ "success": true, "errormessage": "" }); 
+				   updateExposure(betdata.userid, betdata.stakeValue, "Deposit");
+				}
 		   });	
 
 		   //res.json({ "success": true, "errormessage": "", data: matchDetails });			
@@ -404,7 +407,7 @@ app.post('/getbetsPlacedHistoryByUserid', function(req, res)
 {
 	try {
 		let userid = req.body.userid;
-		betSaveInfoModel.find({ userid: userid, back_match_match_lay: req.body.matchtype}).sort({"Created_date": -1}).exec(function(err,obj) { 
+		betSaveInfoModel.find({ userid: userid, back_match_match_lay: req.body.matchtype, MarketId: req.body.MarketId}).sort({"Created_date": -1}).exec(function(err,obj) { 
 		//console.log(obj); 
 		if (obj != undefined) {
 			res.json({ "success": true, "errormessage": "", data: obj });
@@ -426,7 +429,7 @@ app.post('/checkBalancebyUserid', function(req, res)
 	//console.log(req.body);
 	UserModel.findOne({userid: req.body.userid}, function(err,obj) { 		
 		if (obj != undefined) {
-				res.json({ "success": true, "errormessage": "", "balance": obj.Balance });								
+				res.json({ "success": true, "errormessage": "", "balance": obj.Balance , "exposure": obj.UnConfirmed_Balance});								
 		}
 		else
 		{
@@ -435,6 +438,94 @@ app.post('/checkBalancebyUserid', function(req, res)
 	
 	});	
 });
+
+app.post('/cancelByUserID', function(req, res)
+{
+	//console.log(req.body);
+	try {
+		let docid = req.body._id;
+		betSaveInfoModel.find({ _id: docid}).sort({"Created_date": -1}).exec(function(err,obj) { 
+		if (obj != undefined) {
+			console.log(obj);
+			updateExposure(req.body.userid, obj[0].stakeValue, "Withdraw");
+			betSaveInfoModel.remove({ _id: docid }, function (err, events) {
+				if (err) {
+					console.log(err);
+				} else {
+					res.json({ "success": "true" });
+				}
+			});			
+		}
+		else
+		{
+			res.json({ "success": false, "errormessage": "No user history found" });
+		}		
+	
+	});        
+	
+} catch (error) {
+	LogError(error, "getAllUsers");
+}
+	
+});
+
+function updateExposure(userid, reqbalance, reqtype)
+{
+
+	UserModel.findOne({userid: userid}, function(err,obj) { 
+		//console.log(obj); 
+		if (obj != undefined) {
+			let newBalance;
+			if (reqtype == "Deposit") {
+				newBalance = obj.UnConfirmed_Balance + reqbalance;
+			}
+			else
+			{
+				console.log(obj.UnConfirmed_Balance);
+				console.log(reqbalance);
+				if (obj.UnConfirmed_Balance > 0 && obj.UnConfirmed_Balance >= reqbalance) {
+					newBalance = obj.UnConfirmed_Balance - reqbalance;	
+				}				
+				else
+				{					
+					//res.json({ "success": false, "errormessage": "In-sufficient balance for userid" });
+					return false;
+				}
+			}
+			
+			let updateQuery = {
+				"$set": {
+					'UnConfirmed_Balance': newBalance
+				}
+			};
+		
+			UserModel.findOneAndUpdate({userid: userid}, updateQuery, function(err, doc){
+				if(err){
+					LogError(err, "UpdateDeposit");
+				}
+				// let userhistorydata = {
+				// 	"userid" : userid,
+				// 	"Balance" : reqbalance,
+				// 	"Balance_Type": reqtype
+				// }
+				// let userHistoryInfo = new UserhistoryModel(userhistorydata);
+				// userHistoryInfo.save(function (err) {
+				// 	if (err) {
+				// 		LogError(err, "UpdateDeposit_history_save");						
+				// 	}
+					
+				// });	
+			
+				//res.json({ "success": true, "errormessage": "" });
+			});						
+		}
+		else
+		{
+			//res.json({ "success": false, "errormessage": "userid doesnt exists in the system" });
+		}
+	});
+}
+
 
 app.post('/UpdateDeposit', function(req, res)
 {

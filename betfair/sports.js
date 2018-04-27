@@ -143,7 +143,7 @@ BetfairSportsInterface.prototype.getMatchListbyMatchID = function(matchid, cb) {
 
     var query = {"MatchId":matchid,"TokenId":resp.TokenId}
 
-    console.log(query);
+    //console.log(query);
 
     // Configure the request
     var options = {
@@ -195,7 +195,7 @@ BetfairSportsInterface.prototype.getOddsbyMatchID = function(matchid, marketid, 
 
     var query = {"MatchId":matchid,"TokenId":resp.TokenId,"MarketId":marketid}
 
-    console.log(query);
+    //console.log(query);
 
     // Configure the request
     var options = {
