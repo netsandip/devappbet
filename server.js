@@ -227,7 +227,7 @@ app.post('/getMatchOddsbyID', function(req, res)
 		  
 			}
 			// use response here
-			// console.log(response.MarketRunner.runners[0]);
+			//console.log(response.MarketRunner.runners[0]);
 		  
 			var matchDetails = response;
 			res.json({ "success": true, "errormessage": "", data: matchDetails });			
@@ -276,10 +276,10 @@ app.post('/saveBetsInfo', function(req, res)
 
 			if (sports1back >= betdata.odds || sports2back >= betdata.odds ) {
 				betdata.odds = sports1back === undefined ? sports1back : sports2back
-				betdata.Status = "Active"
+				betdata.Status = "Confirmed"
 			} else if (sports1lay < betdata.odds || sports2lay < betdata.odds ) {
 				betdata.odds = sports1lay === undefined ? sports1lay : sports2lay
-				betdata.Status = "Active"
+				betdata.Status = "Confirmed"
 			} else 
 			betdata.Status = "Pending"
 			
@@ -344,7 +344,7 @@ app.post('/test', function(req, res){
 				betdata.liability_profit = (sports2back - 1) * betdata.stakeValue;   
 			   }
 			   
-			   betdata.Status = "Active"
+			   betdata.Status = "Confirmed"
 		   } else if ((sports1lay < betdata.odds || sports2lay < betdata.odds) && betdata.back_match_match_lay == 'Lay' ) {
 			   //betdata.odds = sports1lay === undefined ? sports1lay : sports2lay
 			   if (betdata.sportsType === 'sports1') {
@@ -354,7 +354,7 @@ app.post('/test', function(req, res){
 				betdata.odds =  sports2lay;
 				betdata.liability_profit = (sports2lay - 1) * betdata.stakeValue;   
 			   }
-			   betdata.Status = "Active"
+			   betdata.Status = "Confirmed"
 		   } else 
 		   betdata.Status = "Pending"
 		   		   
@@ -386,7 +386,7 @@ app.post('/getbetsPlacedHistory', function(req, res)
 {
 	try {
 		
-		betSaveInfoModel.find({Status: "Active"}).sort({"Created_date": -1}).exec(function(err,obj) { 
+		betSaveInfoModel.find({Status: "Confirmed"}).sort({"Created_date": -1}).exec(function(err,obj) { 
 		//console.log(obj); 
 		if (obj != undefined) {
 			res.json({ "success": true, "errormessage": "", data: obj });
