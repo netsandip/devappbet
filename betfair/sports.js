@@ -39,7 +39,7 @@ BetfairSportsInterface.prototype.getSportsList = function(id, cb) {
 
     var query = {"sprtId":"4","TokenId":resp.TokenId}
 
-    console.log(query);
+    // console.log(query);
 
     // Configure the request
     var options = {
@@ -91,7 +91,7 @@ BetfairSportsInterface.prototype.getSportsListbySeriesID = function(seriesid, cb
 
     var query = {"sprtId":"4","seriesId":seriesid,"TokenId":resp.TokenId}
 
-    console.log(query);
+    //console.log(query);
 
     // Configure the request
     var options = {
@@ -195,7 +195,7 @@ BetfairSportsInterface.prototype.getOddsbyMatchID = function(matchid, marketid, 
 
     var query = {"MatchId":matchid,"TokenId":resp.TokenId,"MarketId":marketid}
 
-    console.log(query);
+    //console.log(query);
 
     // Configure the request
     var options = {

@@ -141,7 +141,7 @@ app.post('/getUsersHistory', function(req, res)
 app.post('/getSportsList', function(req, res)
 {
 	try {
-	    console.log('Inside sports method');
+	    // console.log('Inside sports method');
 		sports.getSportsList('4', function(err, response) {
 			if (err) {
 			  // include better error handling here   
@@ -230,7 +230,7 @@ app.post('/getMatchOddsbyID', function(req, res)
 			//console.log(response.MarketRunner.runners[0]);
 		  
 			var matchDetails = response;
-			res.json({ "success": true, "errormessage": "", data: matchDetails });			
+			res.json({ "success": true, "errormessage": "", data: matchDetails, status: response.MarketRunner.status });			
 		  
 		  });
 		  
@@ -271,20 +271,21 @@ app.post('/saveBetsInfo', function(req, res)
 
 			
 
-			// console.log(req.body);
+			console.log(req.body);
 			var betdata = req.body;
-
-			if (sports1back >= betdata.odds || sports2back >= betdata.odds ) {
-				betdata.odds = sports1back === undefined ? sports1back : sports2back
-				betdata.Status = "Confirmed"
-			} else if (sports1lay < betdata.odds || sports2lay < betdata.odds ) {
-				betdata.odds = sports1lay === undefined ? sports1lay : sports2lay
-				betdata.Status = "Confirmed"
-			} else 
-			betdata.Status = "Pending"
+			console.log(betdata.odds);
+			
+			// if (sports1back >= betdata.odds || sports2back >= betdata.odds ) {
+			// 	betdata.odds = sports1back === undefined ? sports1back : sports2back
+			// 	betdata.Status = "Confirmed"
+			// } else if (sports1lay < betdata.odds || sports2lay < betdata.odds ) {
+			// 	betdata.odds = sports1lay === undefined ? sports1lay : sports2lay
+			// 	betdata.Status = "Confirmed"
+			// } else 
+			// betdata.Status = "Pending"
 			
 
-			// console.log(betdata);
+			console.log(betdata);
 			var betInfo = new betSaveInfoModel(betdata);
 
 			betInfo.save(function (err) {
@@ -333,28 +334,31 @@ app.post('/test', function(req, res){
 		   sports2lay = response.MarketRunner.runners[1].ex.availableToLay[0].price;
 		   
 		   var betdata = req.body;
-		   
-		   if ((sports1back >= betdata.odds || sports2back >= betdata.odds) && betdata.back_match_match_lay == 'Back' ) {
-			   
-			   if (betdata.sportsType === 'sports1') {
-				betdata.odds =  sports1back; 
-				betdata.liability_profit = (sports1back - 1) * betdata.stakeValue;   
-			   } else {
-				betdata.odds =  sports2back;
-				betdata.liability_profit = (sports2back - 1) * betdata.stakeValue;   
-			   }
-			   
-			   betdata.Status = "Confirmed"
-		   } else if ((sports1lay < betdata.odds || sports2lay < betdata.odds) && betdata.back_match_match_lay == 'Lay' ) {
+		//    console.log('sports1back '+ sports1back, 'sports1lay ' + sports1lay, 'sports2back ' + sports2back, 'sports2lay '+ sports2lay)
+		//    console.log(betdata.odds);
+		   if ( betdata.back_match_match_lay == 'Back' ) {
+			   if (betdata.sportsType === 'sports1' && (parseFloat(sports1back).toFixed(2) >= parseFloat(betdata.odds).toFixed(2))) {
+				//betdata.odds =  sports1back; 
+				betdata.liability_profit = (sports1back - 1) * betdata.stakeValue; 
+				betdata.Status = "Confirmed"  
+			   } else if ( betdata.sportsType === 'sports2' && parseFloat(sports2back).toFixed(2) >= parseFloat(betdata.odds).toFixed(2)) {
+				// betdata.odds =  sports2back;s
+				betdata.liability_profit = (sports2back - 1) * betdata.stakeValue;  
+				betdata.Status = "Confirmed" 
+			   } else 			   
+			   betdata.Status = "Pending"
+		   } else if (betdata.back_match_match_lay == 'Lay' ) {
 			   //betdata.odds = sports1lay === undefined ? sports1lay : sports2lay
-			   if (betdata.sportsType === 'sports1') {
+			   if (betdata.sportsType === 'sports1' && parseFloat(sports1lay).toFixed(2) < parseFloat(betdata.odds).toFixed(2) ) {
 				betdata.odds =  sports1lay; 
 				betdata.liability_profit = (sports1lay - 1) * betdata.stakeValue;   
-			   } else {
+				betdata.Status = "Confirmed"
+			   } else if (betdata.sportsType === 'sports2' && parseFloat(sports2lay).toFixed(2) < parseFloat(betdata.odds).toFixed(2)) {
 				betdata.odds =  sports2lay;
 				betdata.liability_profit = (sports2lay - 1) * betdata.stakeValue;   
-			   }
-			   betdata.Status = "Confirmed"
+				betdata.Status = "Confirmed"
+			   } else 
+			   betdata.Status = "Pending"
 		   } else 
 		   betdata.Status = "Pending"
 		   		   
