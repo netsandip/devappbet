@@ -224,7 +224,59 @@ BetfairSportsInterface.prototype.getOddsbyMatchID = function(matchid, marketid, 
     })
 
   });
-   
+  
+};
+
+BetfairSportsInterface.prototype.getSelectionNames = function(marketid, cb) {
+  var options;
+  
+  var dpsAuth = betfairAuthInterface();
+  dpsAuth.getAuthToken(function(err, response) {
+    if (err) {
+      // include better error handling here
+      
+      return LogError(err, "getAuthToken");
+    }
+    // use response here  
+    var resp = JSON.parse(response);
+    
+     // Set the headers
+    var headers = {
+      'Content-Type': 'application/json'
+    }
+
+    var query = {"MarketId":marketid,"TokenId":resp.TokenId};
+
+    //console.log(query);
+
+    // Configure the request
+    var options = {
+      url: 'http://35.177.14.80/AjayApi/getBackLaysOfMarketSelectionName',
+      method: 'POST',
+      headers: headers,
+      json: query 
+    }
+
+    // Start the request
+    request(options, function (error, response, body) {
+      if (!error && response.statusCode == 200) {        
+          var val;
+          try {
+            val = body;
+          } catch (err) {
+            return cb(err);
+          }
+          cb(null, val);
+      }
+      else
+      {
+        
+        LogError(error, "BetfairSportsInterface - getSportsList");
+      }
+    })
+
+  });
+  
 };
 
 

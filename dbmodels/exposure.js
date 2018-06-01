@@ -6,5 +6,6 @@ module.exports = mongoose.Schema({
     MatchId: String,
     MarketId: String,
     exposureValue: Number,
+    status: String,
     Created_date : { type : Date, default: Date.now }
 });

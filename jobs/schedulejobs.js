@@ -34,8 +34,20 @@ var j = schedule.scheduleJob('*/15 * * * * *', function() {
               
                 }
                 // use response here
-                console.log(response.MarketRunner.runners[0]);
-                if (response.MarketRunner.runners[0].status != 'LOSER') {
+                
+
+                if (response.MarketRunner.runners[0].status == 'WINNER') {
+                    console.log(response.MarketRunner.runners[0].selectionId);    
+                    sports.getSelectionNames(element.MarketId, function(err, response) {
+                        if (response.length > 0) {
+                            console.log(response.runners);
+                        }
+                    });
+                    
+                }
+
+
+                if (response.MarketRunner.runners[0].status != 'LOSER' && response.MarketRunner.runners[0].ex.availableToBack.length > 0 ) {
                     let backprice = response.MarketRunner.runners[0].ex.availableToBack[0].price;
                     let layprice = response.MarketRunner.runners[0].ex.availableToLay[0].price;
                     let backpricespt2 = response.MarketRunner.runners[1].ex.availableToBack[0].price;

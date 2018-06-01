@@ -23,6 +23,9 @@ var UserhistoryModel = mongoose.model('users_historyinfo', user_transSchema, 'us
 var betSaveInfo = require('./dbmodels/betsave');
 var betSaveInfoModel = mongoose.model('betplacementmaster', betSaveInfo, 'betplacementmaster');
 
+var exposureSchema = require('./dbmodels/exposure');
+var exposureInfoModel = mongoose.model('exposuremaster',exposureSchema,'exposure');
+
 app.use(cors());
 /*app.use(favicon(__dirname + '/public/images/favicon.ico'));*/
 app.use(express.static(__dirname + '/public'));
@@ -271,9 +274,9 @@ app.post('/saveBetsInfo', function(req, res)
 
 			
 
-			console.log(req.body);
+			//console.log(req.body);
 			var betdata = req.body;
-			console.log(betdata.odds);
+			//console.log(betdata.odds);
 			
 			// if (sports1back >= betdata.odds || sports2back >= betdata.odds ) {
 			// 	betdata.odds = sports1back === undefined ? sports1back : sports2back
@@ -324,7 +327,8 @@ app.post('/test', function(req, res){
 		   let sports2back;
 		   let sports1lay;
 		   let sports2lay;
-
+		   let exposureValue;
+		   let exposureValue2;
 		 
 		   let matchDetails = response;
 		   //console.log(matchDetails.MarketRunner);
@@ -364,14 +368,66 @@ app.post('/test', function(req, res){
 		   		   
 		   var betInfo = new betSaveInfoModel(betdata);
 
+		   if (betdata.sportsType === 'sports1' ) {
+			   exposureValue = betdata.liability_profit;
+			   exposureValue2 = betdata.stakeValue * -1; //to make negative 
+		   } 
+		   
+		   if (betdata.sportsType === 'sports2') {
+				exposureValue2 = betdata.liability_profit;
+				exposureValue = betdata.stakeValue * -1; //to make negative 
+		   } 
+
+
 		   betInfo.save(function (err) {
 			   if (err) {
 				   LogError(err, "saveBetsInfo");
 				   res.status(400).send(err);
 			   }
 			   else { 
-				   res.json({ "success": true, "errormessage": "" }); 
-				   updateExposure(betdata.userid, betdata.stakeValue, "Deposit");
+
+				if (betdata.Status != "Pending") {
+					if (exposureValue > exposureValue2) {
+						updateExposure(betdata.userid, exposureValue2, "Deposit");   		
+					} else {
+						updateExposure(betdata.userid, exposureValue, "Deposit");   	
+					}								
+				}
+				
+				res.json({ "success": true, "errormessage": "" }); 
+
+				   
+				//    let exposure1 = {
+				// 	   "userid":betdata.userid,
+				// 	   "match_name": betdata.match1,
+				// 	   "MatchId":matchid,
+				// 	   "MarketId":marketid,
+				// 	   "exposureValue":exposureValue
+				//    }
+				//    let exposure2 = {
+				// 	"userid":betdata.userid,
+				// 	"match_name": betdata.match2,
+				// 	"MatchId":matchid,
+				// 	"MarketId":marketid,
+				// 	"exposureValue": exposureValue2
+				// }
+
+				// let exposure1info = new exposureInfoModel(exposure1);
+				// let exposure2info = new exposureInfoModel(exposure2);
+				// exposure1info.save(function (err){
+				// 	if (err) {
+				// 		LogError(err, "Exposure Calculation");
+				//    res.status(400).send(err);
+				// 	}
+				// 	exposure2info.save(function (err){
+				// 		if (err) {
+				// 			LogError(err, "Exposure Calculation");
+				// 	   res.status(400).send(err);
+				// 		}
+	
+				// 	});
+				// });
+				 
 				}
 		   });	
 
