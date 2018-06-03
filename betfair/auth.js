@@ -1,4 +1,5 @@
 var request = require('request');
+var ErrorLogInterface = require('../common/errorLogger.js');
 
 function BetFairAuthInterface() {
   if (!(this instanceof BetFairAuthInterface))
@@ -37,7 +38,7 @@ BetFairAuthInterface.prototype.getAuthToken = function(cb) {
     }
     else
     {      
-      LogError(err, "BetFairAuthInterface - getAuthToken");
+      LogError(error, "BetFairAuthInterface - getAuthToken");
     }
   })  
 };

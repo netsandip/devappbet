@@ -323,12 +323,21 @@ app.post('/test', function(req, res){
 		   }
 		   // use response here
 
-		   let sports1back;
+		   let exposureValue = 0;
+		   let exposureValue2 = 0;
+
+		   exposureInfoModel.find({}).sort({"Created_date": -1}).limit(1).exec(function(err,obj) { 
+			console.log(obj); 
+			if (obj != undefined && obj.length > 0) {
+				exposureValue = obj[0].exposureValue;
+		    	exposureValue2 = obj[0].exposureValue2;
+			}
+				let sports1back;
 		   let sports2back;
 		   let sports1lay;
 		   let sports2lay;
-		   let exposureValue;
-		   let exposureValue2;
+		   console.log(obj);
+		    
 		 
 		   let matchDetails = response;
 		   //console.log(matchDetails.MarketRunner);
@@ -338,46 +347,77 @@ app.post('/test', function(req, res){
 		   sports2lay = response.MarketRunner.runners[1].ex.availableToLay[0].price;
 		   
 		   var betdata = req.body;
+		   let profit = 0;
+		   let liability = 0;
 		//    console.log('sports1back '+ sports1back, 'sports1lay ' + sports1lay, 'sports2back ' + sports2back, 'sports2lay '+ sports2lay)
 		//    console.log(betdata.odds);
+		   
 		   if ( betdata.back_match_match_lay == 'Back' ) {
 			   if (betdata.sportsType === 'sports1' && (parseFloat(sports1back).toFixed(2) >= parseFloat(betdata.odds).toFixed(2))) {
+				   console.log('hello1');
 				//betdata.odds =  sports1back; 
 				betdata.liability_profit = (sports1back - 1) * betdata.stakeValue; 
-				betdata.Status = "Confirmed"  
+				profit = (sports1back - 1) * betdata.stakeValue; 
+				liability = betdata.stakeValue;
+				betdata.Status = "Confirmed";  
 			   } else if ( betdata.sportsType === 'sports2' && parseFloat(sports2back).toFixed(2) >= parseFloat(betdata.odds).toFixed(2)) {
-				// betdata.odds =  sports2back;s
-				betdata.liability_profit = (sports2back - 1) * betdata.stakeValue;  
-				betdata.Status = "Confirmed" 
+				// betdata.odds =  sports2back;
+				console.log('hello2');
+				console.log(parseFloat(sports1back).toFixed(2));
+				console.log(betdata.stakeValue);
+				profit = (parseFloat(sports2back).toFixed(2) - 1) * betdata.stakeValue; 
+				liability = betdata.stakeValue;
+				betdata.liability_profit = (parseFloat(sports2back).toFixed(2) - 1) * betdata.stakeValue;  
+				betdata.Status = "Confirmed" ;
 			   } else 			   
-			   betdata.Status = "Pending"
+			   betdata.Status = "Pending";
 		   } else if (betdata.back_match_match_lay == 'Lay' ) {
 			   //betdata.odds = sports1lay === undefined ? sports1lay : sports2lay
 			   if (betdata.sportsType === 'sports1' && parseFloat(sports1lay).toFixed(2) < parseFloat(betdata.odds).toFixed(2) ) {
+				console.log('hello3');
+				profit = (sports1lay - 1) * betdata.stakeValue; 
+				liability = betdata.stakeValue;
 				betdata.odds =  sports1lay; 
 				betdata.liability_profit = (sports1lay - 1) * betdata.stakeValue;   
-				betdata.Status = "Confirmed"
+				betdata.Status = "Confirmed";
 			   } else if (betdata.sportsType === 'sports2' && parseFloat(sports2lay).toFixed(2) < parseFloat(betdata.odds).toFixed(2)) {
+				console.log('hello4');
+				profit = (sports2lay - 1) * betdata.stakeValue; 
+				liability = betdata.stakeValue;
 				betdata.odds =  sports2lay;
 				betdata.liability_profit = (sports2lay - 1) * betdata.stakeValue;   
-				betdata.Status = "Confirmed"
+				betdata.Status = "Confirmed";
 			   } else 
-			   betdata.Status = "Pending"
+			   betdata.Status = "Pending";
 		   } else 
-		   betdata.Status = "Pending"
+		   betdata.Status = "Pending";
 		   		   
 		   var betInfo = new betSaveInfoModel(betdata);
+		   console.log(profit);
+		   console.log(liability);
 
-		   if (betdata.sportsType === 'sports1' ) {
-			   exposureValue = betdata.liability_profit;
-			   exposureValue2 = betdata.stakeValue * -1; //to make negative 
+		   if (betdata.sportsType === 'sports1' && betdata.back_match_match_lay == 'Back' ) {
+			   exposureValue = exposureValue + profit;
+			   exposureValue2 = exposureValue2 - betdata.stakeValue; //to make negative 
+		   } 
+
+		   if (betdata.sportsType === 'sports2' && betdata.back_match_match_lay == 'Back' ) {
+				exposureValue = exposureValue - betdata.stakeValue;
+				exposureValue2 = exposureValue2 + profit;
 		   } 
 		   
-		   if (betdata.sportsType === 'sports2') {
-				exposureValue2 = betdata.liability_profit;
-				exposureValue = betdata.stakeValue * -1; //to make negative 
-		   } 
+		   
+		   if (betdata.sportsType === 'sports1' && betdata.back_match_match_lay == 'Lay' ) {
+				exposureValue = exposureValue + profit;
+				exposureValue2 = exposureValue2 - betdata.stakeValue; //to make negative 
+			} 
 
+			if (betdata.sportsType === 'sports2' && betdata.back_match_match_lay == 'Lay' ) {
+				exposureValue = exposureValue - liability;
+				exposureValue2 = exposureValue2 + profit;
+			}
+
+			console.log('exposure1 ' +  exposureValue + ' exposure2 '+ exposureValue2);
 
 		   betInfo.save(function (err) {
 			   if (err) {
@@ -391,46 +431,39 @@ app.post('/test', function(req, res){
 						updateExposure(betdata.userid, exposureValue2, "Deposit");   		
 					} else {
 						updateExposure(betdata.userid, exposureValue, "Deposit");   	
-					}								
+					}	
+				let exposure1 = {
+					"userid":betdata.userid,
+					"match_name": betdata.match1,
+					"MatchId":matchid,
+					"MarketId":marketid,
+					"exposureValue":exposureValue,
+					"exposureValue2":exposureValue2
+				}				 
+ 
+				let exposure1info = new exposureInfoModel(exposure1);
+				 // let exposure2info = new exposureInfoModel(exposure2);
+				exposure1info.save(function (err){
+					 if (err) {
+						 LogError(err, "Exposure Calculation");				   
+					 }
+					 
+				 });							
 				}
-				
-				res.json({ "success": true, "errormessage": "" }); 
-
+							   
 				   
-				//    let exposure1 = {
-				// 	   "userid":betdata.userid,
-				// 	   "match_name": betdata.match1,
-				// 	   "MatchId":matchid,
-				// 	   "MarketId":marketid,
-				// 	   "exposureValue":exposureValue
-				//    }
-				//    let exposure2 = {
-				// 	"userid":betdata.userid,
-				// 	"match_name": betdata.match2,
-				// 	"MatchId":matchid,
-				// 	"MarketId":marketid,
-				// 	"exposureValue": exposureValue2
-				// }
 
-				// let exposure1info = new exposureInfoModel(exposure1);
-				// let exposure2info = new exposureInfoModel(exposure2);
-				// exposure1info.save(function (err){
-				// 	if (err) {
-				// 		LogError(err, "Exposure Calculation");
-				//    res.status(400).send(err);
-				// 	}
-				// 	exposure2info.save(function (err){
-				// 		if (err) {
-				// 			LogError(err, "Exposure Calculation");
-				// 	   res.status(400).send(err);
-				// 		}
-	
-				// 	});
-				// });
+				res.json({ "success": true, "errormessage": "" }); 
 				 
 				}
 		   });	
 
+			
+			
+		
+		});        
+
+		   
 		   //res.json({ "success": true, "errormessage": "", data: matchDetails });			
 		 
 		 });
@@ -537,7 +570,7 @@ function updateExposure(userid, reqbalance, reqtype)
 		if (obj != undefined) {
 			let newBalance;
 			if (reqtype == "Deposit") {
-				newBalance = obj.UnConfirmed_Balance + reqbalance;
+				newBalance = reqbalance;//obj.UnConfirmed_Balance + 
 			}
 			else
 			{

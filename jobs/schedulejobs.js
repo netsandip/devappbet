@@ -47,7 +47,7 @@ var j = schedule.scheduleJob('*/15 * * * * *', function() {
                 }
 
 
-                if (response.MarketRunner.runners[0].status != 'LOSER' && response.MarketRunner.runners[0].ex.availableToBack.length > 0 ) {
+                if (response.MarketRunner.runners[0].status != 'LOSER' && response.MarketRunner.runners[0].ex.availableToBack != undefined ) {
                     let backprice = response.MarketRunner.runners[0].ex.availableToBack[0].price;
                     let layprice = response.MarketRunner.runners[0].ex.availableToLay[0].price;
                     let backpricespt2 = response.MarketRunner.runners[1].ex.availableToBack[0].price;
