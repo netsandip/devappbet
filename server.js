@@ -153,8 +153,7 @@ app.post('/getSportsList', function(req, res)
 		  
 			}
 			// use response here
-			//console.log(response);
-		  
+
 			var sportsDetails = response;
 			res.json({ "success": true, "errormessage": "", data: sportsDetails });			
 		  
@@ -179,7 +178,14 @@ app.post('/getSportsListbySeriesID', function(req, res)
 		  
 			}
 			// use response here
-			//console.log(response);
+			// console.log(response);
+
+			for (let index = 0; index < response.matchfrmApi.length; index++) {
+				const element = response.matchfrmApi[index];
+				console.log(element.event.name);
+				let listofArray = element.event.name.split(' ');
+				response.matchfrmApi[index].event.name = listofArray[0] + ' ' + listofArray[1] + ' ' + listofArray[2];				
+			}
 		  
 			var sportsDetails = response;
 			res.json({ "success": true, "errormessage": "", data: sportsDetails });			
