@@ -379,19 +379,19 @@ app.post('/test', function(req, res){
 			   betdata.Status = "Pending";
 		   } else if (betdata.back_match_match_lay == 'Lay' ) {
 			   //betdata.odds = sports1lay === undefined ? sports1lay : sports2lay
-			   if (betdata.sportsType === 'sports1' && parseFloat(sports1lay).toFixed(2) < parseFloat(betdata.odds).toFixed(2) ) {
+			   if (betdata.sportsType === 'sports1' && parseFloat(sports1lay).toFixed(2) <= parseFloat(betdata.odds).toFixed(2) ) {
 				console.log('hello3');
-				profit = (sports1lay - 1) * betdata.stakeValue; 
-				liability = betdata.stakeValue;
+				profit = betdata.stakeValue;
+				liability = (parseFloat(sports1lay).toFixed(2) - 1) * betdata.stakeValue; 
 				betdata.odds =  sports1lay; 
-				betdata.liability_profit = (sports1lay - 1) * betdata.stakeValue;   
+				betdata.liability_profit = (parseFloat(sports1lay).toFixed(2) - 1) * betdata.stakeValue;   
 				betdata.Status = "Confirmed";
-			   } else if (betdata.sportsType === 'sports2' && parseFloat(sports2lay).toFixed(2) < parseFloat(betdata.odds).toFixed(2)) {
+			   } else if (betdata.sportsType === 'sports2' && parseFloat(sports2lay).toFixed(2) <= parseFloat(betdata.odds).toFixed(2)) {
 				console.log('hello4');
-				profit = (sports2lay - 1) * betdata.stakeValue; 
-				liability = betdata.stakeValue;
+				profit = betdata.stakeValue;
+				liability = (parseFloat(sports2lay).toFixed(2) - 1) * betdata.stakeValue; 
 				betdata.odds =  sports2lay;
-				betdata.liability_profit = (sports2lay - 1) * betdata.stakeValue;   
+				betdata.liability_profit = (parseFloat(sports2lay).toFixed(2) - 1) * betdata.stakeValue;   
 				betdata.Status = "Confirmed";
 			   } else 
 			   betdata.Status = "Pending";
@@ -414,13 +414,15 @@ app.post('/test', function(req, res){
 		   
 		   
 		   if (betdata.sportsType === 'sports1' && betdata.back_match_match_lay == 'Lay' ) {
-				exposureValue = exposureValue + profit;
-				exposureValue2 = exposureValue2 - betdata.stakeValue; //to make negative 
+				//    console.log(exposureValue);
+				//    console.log(profit);
+				exposureValue = exposureValue - liability;
+				exposureValue2 = exposureValue2 + profit; 
 			} 
 
 			if (betdata.sportsType === 'sports2' && betdata.back_match_match_lay == 'Lay' ) {
-				exposureValue = exposureValue - liability;
-				exposureValue2 = exposureValue2 + profit;
+				exposureValue = exposureValue + profit;
+				exposureValue2 = exposureValue2 - liability;
 			}
 
 			console.log('exposure1 ' +  exposureValue + ' exposure2 '+ exposureValue2);
