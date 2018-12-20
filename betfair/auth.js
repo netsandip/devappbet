@@ -21,7 +21,7 @@ BetFairAuthInterface.prototype.getAuthToken = function(cb) {
   
   // Configure the request
   var options = {
-    url: 'http://35.177.14.80/createToken/chkLoginuser',
+    url: 'http://35.197.194.223/createTokenApi/chkLoginuser',
     method: 'GET'
   }
 

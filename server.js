@@ -14,6 +14,9 @@ var cors = require('cors');
 var sportsInterface = require('./betfair/sports.js');
 var sports = sportsInterface();
 
+var newsportsInterface = require('./betfair/betfair.js');
+var newsports = newsportsInterface();
+
 var userSchema = require('./dbmodels/users');
 var UserModel = mongoose.model('usersinfo', userSchema, 'users');
 
@@ -37,7 +40,7 @@ mongoose.Promise = require('bluebird');
 mongoose.connect(connection.connectionString, {
     keepAlive: true,
     reconnectTries: Number.MAX_VALUE,
-    useMongoClient: true
+    useNewUrlParser: true
   });
 
 //Common functions
@@ -165,6 +168,55 @@ app.post('/getSportsList', function(req, res)
 	}
 });
 
+app.post('/getNewSportsList', function(req, res)
+{
+	try {
+	    // console.log('Inside sports method');
+		newsports.getSportsList('4', function(err, response) {
+			if (err) {
+			  // include better error handling here   
+			  
+			  return LogError(err, "getAuthToken");
+		  
+			}
+			// use response here
+
+			var sportsDetails = response;
+			res.json({ "success": true, "errormessage": "", data: sportsDetails });			
+		  
+		  });
+		  
+		
+	} catch (error) {
+		LogError(error, "getSportsList");
+	}
+});
+
+app.post('/getNewSportsListbySeriesID', function(req, res)
+{
+	try {
+		var seriesid = req.body.seriesId;
+	    // console.log(';');
+		newsports.getSportsListbySeriesID(seriesid, function(err, response) {
+			if (err) {
+			  // include better error handling here   
+			  
+			  return LogError(err, "getSportsListbySeriesID");
+		  
+			}
+			
+			var sportsDetails = response;
+			res.json({ "success": true, "errormessage": "", data: sportsDetails });			
+		  
+		  });
+		  
+		
+	} catch (error) {
+		LogError(error, "getSportsListbySeriesID");
+	}
+});
+
+
 app.post('/getSportsListbySeriesID', function(req, res)
 {
 	try {
@@ -183,8 +235,13 @@ app.post('/getSportsListbySeriesID', function(req, res)
 			for (let index = 0; index < response.matchfrmApi.length; index++) {
 				const element = response.matchfrmApi[index];
 				console.log(element.event.name);
-				let listofArray = element.event.name.split(' ');
-				response.matchfrmApi[index].event.name = listofArray[0] + ' ' + listofArray[1] + ' ' + listofArray[2];				
+				let listofArray = element.event.name.split(' v ');
+				console.log(listofArray);
+				if (listofArray[1] == undefined) {
+					response.matchfrmApi[index].event.name = listofArray[0]
+				} else {
+					response.matchfrmApi[index].event.name = listofArray[0] + ' v ' + listofArray[1];				
+				}
 			}
 		  
 			var sportsDetails = response;
@@ -223,6 +280,32 @@ app.post('/getMatchListbyMatchID', function(req, res)
 	}
 });
 
+app.post('/getNewMatchListbyMatchID', function(req, res)
+{
+	try {
+		var matchid = req.body.MatchId;
+	    newsports.getMatchListbyMatchID(matchid, function(err, response) {
+			if (err) {
+			  // include better error handling here   
+			  
+			  return LogError(err, "getMatchListbyMatchID");
+		  
+			}
+			// use response here
+			
+		  
+			var matchDetails = response;
+			res.json({ "success": true, "errormessage": "", data: matchDetails });			
+		  
+		  });
+		  
+		
+	} catch (error) {
+		LogError(error, "getMatchListbyMatchID");
+	}
+});
+
+
 app.post('/getMatchOddsbyID', function(req, res)
 {
 	try {
@@ -239,7 +322,11 @@ app.post('/getMatchOddsbyID', function(req, res)
 			//console.log(response.MarketRunner.runners[0]);
 		  
 			var matchDetails = response;
-			res.json({ "success": true, "errormessage": "", data: matchDetails, status: response.MarketRunner.status });			
+			if (response.MarketRunner != undefined) {
+				res.json({ "success": true, "errormessage": "", data: matchDetails, status: response.MarketRunner.status });				
+			} else {
+				res.json({ "success": true, "errormessage": "", data: matchDetails, status: "Not Ready" });			
+			}
 		  
 		  });
 		  
@@ -248,6 +335,37 @@ app.post('/getMatchOddsbyID', function(req, res)
 		LogError(error, "getMatchListbyMatchID");
 	}
 });
+
+app.post('/getNewSportsMatchOddsbyID', function(req, res)
+{
+	try {
+		var matchid = req.body.MatchId;
+		var marketid = req.body.MarketId;
+	    newsports.getOddsbyMarketId(marketid, function(err, response) {
+			if (err) {
+			  // include better error handling here   
+			  
+			  return LogError(err, "getNewSportsMatchOddsbyID");
+		  
+			}
+			// use response here
+			//console.log(response.MarketRunner.runners[0]);
+		  
+			var matchDetails = response;
+			if (response.MarketRunner != undefined) {
+				res.json({ "success": true, "errormessage": "", data: matchDetails, status: response.MarketRunner.status });				
+			} else {
+				res.json({ "success": true, "errormessage": "", data: matchDetails, status: "Not Ready" });			
+			}
+		  
+		  });
+		  
+		
+	} catch (error) {
+		LogError(error, "getMatchListbyMatchID");
+	}
+});
+
 
 app.post('/saveBetsInfo', function(req, res)
 {
@@ -361,13 +479,13 @@ app.post('/test', function(req, res){
 		   if ( betdata.back_match_match_lay == 'Back' ) {
 			   if (betdata.sportsType === 'sports1' && (parseFloat(sports1back).toFixed(2) >= parseFloat(betdata.odds).toFixed(2))) {
 				   console.log('hello1');
-				//betdata.odds =  sports1back; 
+				betdata.odds =  sports1back; 
 				betdata.liability_profit = (sports1back - 1) * betdata.stakeValue; 
 				profit = (sports1back - 1) * betdata.stakeValue; 
 				liability = betdata.stakeValue;
 				betdata.Status = "Confirmed";  
 			   } else if ( betdata.sportsType === 'sports2' && parseFloat(sports2back).toFixed(2) >= parseFloat(betdata.odds).toFixed(2)) {
-				// betdata.odds =  sports2back;
+				betdata.odds =  sports2back;
 				console.log('hello2');
 				console.log(parseFloat(sports1back).toFixed(2));
 				console.log(betdata.stakeValue);
@@ -397,6 +515,7 @@ app.post('/test', function(req, res){
 			   betdata.Status = "Pending";
 		   } else 
 		   betdata.Status = "Pending";
+		   betdata.liability_profit = parseFloat(betdata.liability_profit).toFixed(2); 
 		   		   
 		   var betInfo = new betSaveInfoModel(betdata);
 		   console.log(profit);

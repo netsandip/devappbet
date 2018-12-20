@@ -43,7 +43,7 @@ BetfairSportsInterface.prototype.getSportsList = function(id, cb) {
 
     // Configure the request
     var options = {
-      url: 'http://35.177.14.80/AjayApi/getSeriesOfSport',
+      url: 'http://35.197.194.223/AjayApi/getSeriesOfSport',
       method: 'POST',
       headers: headers,
       json: query 
@@ -95,7 +95,7 @@ BetfairSportsInterface.prototype.getSportsListbySeriesID = function(seriesid, cb
 
     // Configure the request
     var options = {
-      url: 'http://35.177.14.80/AjayApi/getMatchOfSport',
+      url: 'http://35.197.194.223/AjayApi/getMatchOfSport',
       method: 'POST',
       headers: headers,
       json: query 
@@ -147,7 +147,7 @@ BetfairSportsInterface.prototype.getMatchListbyMatchID = function(matchid, cb) {
 
     // Configure the request
     var options = {
-      url: 'http://35.177.14.80/AjayApi/getMarketOfMatch',
+      url: 'http://35.197.194.223/AjayApi/getMarketOfMatch',
       method: 'POST',
       headers: headers,
       json: query 
@@ -199,7 +199,7 @@ BetfairSportsInterface.prototype.getOddsbyMatchID = function(matchid, marketid, 
 
     // Configure the request
     var options = {
-      url: 'http://35.177.14.80/AjayApi/getBackLaysOfMarket',
+      url: 'http://35.197.194.223/AjayApi/getBackLaysOfMarket',
       method: 'POST',
       headers: headers,
       json: query 
@@ -251,7 +251,7 @@ BetfairSportsInterface.prototype.getSelectionNames = function(marketid, cb) {
 
     // Configure the request
     var options = {
-      url: 'http://35.177.14.80/AjayApi/getBackLaysOfMarketSelectionName',
+      url: 'http://35.197.194.223/AjayApi/getBackLaysOfMarketSelectionName',
       method: 'POST',
       headers: headers,
       json: query 

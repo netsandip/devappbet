@@ -11,6 +11,7 @@ module.exports = mongoose.Schema({
     MatchId: String,
     MarketId: String,
     stakeValue: Number,
+    sportsType: String,
     Created_date : { type : Date, default: Date.now }
 });
 
